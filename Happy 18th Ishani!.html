@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy 18th Ishani!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ffd6e8;--ink:#2b1646;--card:#fff;--pop:#ffe14d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2b1646;--ink:#fff;--card:#43246b;--pop:#ffd23f}}
+html,body{height:100%;margin:0;overflow:hidden;touch-action:none}
+body{background:var(--bg);color:var(--ink);font-family:'Fredoka',system-ui,sans-serif;font-weight:700;user-select:none;-webkit-user-select:none;
+background-image:radial-gradient(color-mix(in srgb,var(--ink) 14%,transparent) 2px,transparent 2.5px);background-size:26px 26px}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+#ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:calc(18px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px))}
+h1{margin:0;font-size:clamp(34px,8vw,76px);line-height:.95;text-transform:uppercase;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;color:var(--pop);text-shadow:4px 5px 0 var(--ink)}
+h1 span{display:inline-block;animation:hop 1.1s ease-in-out infinite}
+h1 span:nth-child(2n){animation-delay:.15s}h1 span:nth-child(3n){animation-delay:.3s}
+@keyframes hop{50%{transform:translateY(-10px) rotate(-5deg)}}
+.tag{display:inline-block;margin-top:14px;padding:6px 16px;background:var(--card);border:3px solid var(--ink);border-radius:99px;box-shadow:3px 4px 0 var(--ink);font-size:15px;transform:rotate(-2deg)}
+#bar{display:flex;gap:12px;pointer-events:auto}
+button{font:inherit;font-size:18px;color:#2b1646;background:var(--pop);border:3px solid var(--ink);border-radius:18px;padding:12px 22px;box-shadow:4px 5px 0 var(--ink);cursor:pointer;transition:transform .1s,box-shadow .1s}
+button:nth-child(2){background:#ff7ab8}
+button:active{transform:translate(4px,5px);box-shadow:0 0 0 var(--ink)}
+#msg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0) rotate(-6deg);background:var(--card);border:3px solid var(--ink);border-radius:26px;box-shadow:6px 8px 0 var(--ink);padding:22px 28px;max-width:80vw;text-align:center;font-size:clamp(20px,4.5vw,32px);transition:transform .45s cubic-bezier(.3,1.9,.5,1);pointer-events:none}
+#msg.on{transform:translate(-50%,-50%) scale(1) rotate(-2deg)}
+#lock{position:fixed;inset:0;z-index:20;display:grid;place-items:center;text-align:center;padding:20px;background-color:var(--bg);background-image:radial-gradient(color-mix(in srgb,var(--ink) 14%,transparent) 2px,transparent 2.5px);background-size:26px 26px;transition:opacity .9s,transform .9s}
+#lock.go{opacity:0;transform:scale(1.15);pointer-events:none}
+#lock h2{margin:18px 0 20px;font-size:clamp(26px,6vw,48px);line-height:1.05}
+#cd{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.u{background:var(--card);border:3px solid var(--ink);border-radius:16px;box-shadow:4px 5px 0 var(--ink);padding:10px 12px;min-width:62px}
+.u:nth-child(odd){transform:rotate(-3deg)}.u:nth-child(even){transform:rotate(3deg)}
+.u b{display:block;font-size:clamp(30px,9vw,54px);line-height:1}.u i{font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+#lock p{margin:22px 0 0;font-size:16px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div><h1 id="t"></h1><div class="tag">tap anywhere · drag &amp; throw stuff ✨</div></div>
+  <div id="bar"><button id="b1">🎉 party!</button><button id="b2">💌 wish</button></div>
+</div>
+<div id="msg"></div>
+<div id="lock"><div><span class="tag">🔒 not yet, ishani!</span><h2>Your surprise opens in</h2><div id="cd"></div><p>🎂 12:00 AM · 4th October 🎂</p></div></div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,dpr=Math.min(devicePixelRatio||1,2);
+function size(){W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',size);size();
+document.getElementById('t').innerHTML=[...'HAPPY 18TH'].map(c=>c==' '?' ':`<span>${c}</span>`).join('')+'<br>'+[...'ISHANI'].map(c=>`<span>${c}</span>`).join('')+'!';
+const COL=['#ff5fa2','#ffb84d','#4dd2ff','#8f6bff','#5ee08a','#ff7a59'],EM=['🎈','🎂','🎉','💖','✨','🥳','🎁','🍰','🌈','🦄'];
+let bodies=[],parts=[],grab=null;
+const R=Math.max(26,Math.min(40,Math.min(W,H)/13));
+function add(x,y,r,label,emoji,c){bodies.push({x,y,vx:(Math.random()-.5)*300,vy:0,r,m:r*r,label,emoji,c,a:0,w:(Math.random()-.5)*4})}
+function start(){[...'18'].forEach((c,i)=>setTimeout(()=>add(W*(.4+i*.2),-60,R*1.8,c,null,COL[i]),300+i*300));
+[...'ISHANI'].forEach((c,i)=>setTimeout(()=>add(W*(.1+Math.random()*.8),-50,R,c,null,COL[(i+2)%6]),900+i*200));}
+function burst(x,y,n,spread,up){for(let i=0;i<n;i++){const a=-Math.PI/2+(Math.random()-.5)*spread*2,s=up*(.4+Math.random()*.8);
+parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,w:5+Math.random()*7,h:4+Math.random()*5,a:Math.random()*6,va:(Math.random()-.5)*14,c:COL[Math.random()*6|0],life:5})}}
+function party(){burst(0,H,80,.6,1500);burst(W,H,80,.6,1500);parts.forEach(p=>{if(p.x>=W-1&&p.vx>0)p.vx*=-1})}
+cv.addEventListener('pointerdown',e=>{const x=e.clientX,y=e.clientY;let hit=null;
+for(let i=bodies.length-1;i>=0;i--){const b=bodies[i];if(Math.hypot(b.x-x,b.y-y)<b.r+8){hit=b;break}}
+if(hit)grab={b:hit,t:[]};else{add(x,y,R*(.7+Math.random()*.4),null,EM[Math.random()*EM.length|0]);burst(x,y,18,3.1,420);if(bodies.length>60)bodies.splice(8,1)}
+cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(grab){grab.tx=e.clientX;grab.ty=e.clientY;grab.t.push([e.clientX,e.clientY,performance.now()]);if(grab.t.length>6)grab.t.shift()}});
+const rel=()=>{if(grab){const t=grab.t;if(t.length>1){const a=t[0],b=t[t.length-1],dt=Math.max(.016,(b[2]-a[2])/1000);grab.b.vx=(b[0]-a[0])/dt*.8;grab.b.vy=(b[1]-a[1])/dt*.8}grab=null}};
+cv.addEventListener('pointerup',rel);cv.addEventListener('pointercancel',rel);
+document.getElementById('b1').onclick=party;
+const wishes=['You\u2019re 18! Go be amazing 🌟','Cake. Friends. Zero homework. 🎂','Main character year starts NOW 💅','Happy birthday, legend! 🥳','Adulting can wait. Party first! 🎈'];
+let wi=0,mt;const m=document.getElementById('msg');
+document.getElementById('b2').onclick=()=>{m.textContent=wishes[wi++%wishes.length];m.classList.add('on');clearTimeout(mt);mt=setTimeout(()=>m.classList.remove('on'),2600);burst(W/2,H/2,50,3.1,700)};
+function step(dt){
+for(const b of bodies){
+if(grab&&grab.b===b&&grab.tx!=null){b.vx=(grab.tx-b.x)*20;b.vy=(grab.ty-b.y)*20}else b.vy+=1400*dt;
+b.x+=b.vx*dt;b.y+=b.vy*dt;b.a+=b.w*dt;b.vx*=.9993;
+if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*.75}
+if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*.75}
+if(b.y>H-b.r){b.y=H-b.r;b.vy=-Math.abs(b.vy)*.7;b.vx*=.985;b.w=b.vx/b.r}}
+for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++){
+const a=bodies[i],b=bodies[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;
+if(d<min&&d>0){const nx=dx/d,ny=dy/d,o=(min-d)/(a.m+b.m);
+a.x-=nx*o*b.m;a.y-=ny*o*b.m;b.x+=nx*o*a.m;b.y+=ny*o*a.m;
+const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+if(rv<0){const k=-1.7*rv/(1/a.m+1/b.m);a.vx-=k*nx/a.m;a.vy-=k*ny/a.m;b.vx+=k*nx/b.m;b.vy+=k*ny/b.m;a.w+=rv*.01;b.w-=rv*.01}}}
+for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vy+=450*dt;p.vx*=.985;p.vy*=.985;p.x+=p.vx*dt;p.y+=p.vy*dt;p.a+=p.va*dt;p.life-=dt;
+if(p.life<0||p.y>H+30)parts.splice(i,1)}}
+function draw(){
+ctx.clearRect(0,0,W,H);
+const ink=getComputedStyle(document.documentElement).getPropertyValue('--ink')||'#2b1646';
+for(const p of parts){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.scale(1,Math.cos(p.a*2));ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()}
+ctx.textAlign='center';ctx.textBaseline='middle';
+for(const b of bodies){ctx.save();ctx.translate(b.x,b.y);
+if(b.label){ctx.fillStyle=ink;ctx.beginPath();ctx.arc(4,5,b.r,0,7);ctx.fill();
+ctx.rotate(b.a);ctx.beginPath();ctx.arc(0,0,b.r,0,7);ctx.fillStyle=b.c;ctx.fill();ctx.lineWidth=3.5;ctx.strokeStyle=ink;ctx.stroke();
+ctx.fillStyle='#fff';ctx.lineWidth=b.r*.14;ctx.strokeStyle=ink;ctx.font=`700 ${b.r*1.2}px Fredoka,system-ui,sans-serif`;ctx.strokeText(b.label,0,b.r*.06);ctx.fillText(b.label,0,b.r*.06)}
+else{ctx.rotate(b.a*.5);ctx.font=`${b.r*1.7}px serif`;ctx.fillText(b.emoji,0,b.r*.08)}
+ctx.restore()}}
+let last=performance.now();
+function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;for(let i=0;i<3;i++)step(dt/3);draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+const T=new Date(new Date().getFullYear(),9,4,0,0,0).getTime(),lock=document.getElementById('lock'),cd=document.getElementById('cd');let opened=false;
+function openUp(){if(opened)return;opened=true;lock.classList.add('go');setTimeout(()=>lock.remove(),1000);start();setTimeout(party,500)}
+function tick(){const d=T-Date.now();if(d<=0||location.search.includes('preview'))return openUp();
+const s=Math.floor(d/1000),v=[Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60],l=['days','hrs','min','sec'];
+cd.innerHTML=v.map((n,i)=>`<div class="u"><b>${String(n).padStart(2,'0')}</b><i>${l[i]}</i></div>`).join('');setTimeout(tick,250)}
+tick();
+</script>
+</body>
+</html>
